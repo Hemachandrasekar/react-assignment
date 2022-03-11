@@ -1,59 +1,44 @@
-import React, { useEffect, useState } from 'react';
-import { Layout, Menu, Breadcrumb } from 'antd';
-import UserScreen from '../UserScreen';
-import 'antd/dist/antd.css';
-import 'antd/dist/antd.less';
-
-const { Header, Content, Footer } = Layout;
+import React, { useEffect, useCallback} from 'react';
+import UserCard from '../UserCard';
+import { List } from 'antd';
+import axios from 'axios';
+import { useDispatch,useSelector} from 'react-redux'
+import { ADD_USER } from '../../redux/action/ActionTypes';
 
 const HomeScreen = () => {
-  const [fetchData, setFetchData] = useState([]);
+  const dispatch = useDispatch()
+  const fetchData = useSelector((state) => state.users)
+  console.log("fetch data ",fetchData)
+
+  const getApi = useCallback(async() => {
+    const responseApi = await axios.get('https://jsonplaceholder.typicode.com/users');
+    const data = await responseApi.data;
+    console.log("response", data)
+    dispatch({
+      type: ADD_USER,
+      data :data
+  })
+  
+
+  }, [dispatch]);
 
   useEffect(() => {
-    fetch('https://jsonplaceholder.typicode.com/users')
-      .then((res) => {
-        return res.json();
-      })
-      .then((data) => {
-        setFetchData(data);
-        console.log('data value', data);
-      });
-  }, []);
+    getApi();
+  }, [getApi]);
 
   return (
-    <>
-      <Layout>
-        <Header style={{ position: 'fixed', zIndex: 1, width: '100%' }}>
-          <div className="logo" />
-          <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['2']}>
-            <Menu.Item key="1">nav 1</Menu.Item>
-            <Menu.Item key="2">nav 2</Menu.Item>
-            <Menu.Item key="3">nav 3</Menu.Item>
-          </Menu>
-        </Header>
-        <Content
-          className="site-layout"
-          style={{ padding: '0 50px', marginTop: 64 }}
-        >
-          <Breadcrumb style={{ margin: '16px 0' }}>
-            <Breadcrumb.Item>Home</Breadcrumb.Item>
-            <Breadcrumb.Item>List</Breadcrumb.Item>
-            <Breadcrumb.Item>App</Breadcrumb.Item>
-          </Breadcrumb>
-          <div
-            className="site-layout-background"
-            style={{ padding: 24, minHeight: 380 }}
-          >
-            <ul>
-              <UserScreen data={fetchData} />
-            </ul>
-          </div>
-        </Content>
-        <Footer style={{ textAlign: 'center' }}>
-          Ant Design ©2018 Created by Ant UED
-        </Footer>
-      </Layout>
-    </>
+    <List
+      grid={{
+        gutter: 16,
+        column: 4,
+      }}
+      dataSource={fetchData}
+      renderItem={(item) => (
+        <List.Item>
+          <UserCard data={item} />
+        </List.Item>
+      )}
+    />
   );
 };
 
